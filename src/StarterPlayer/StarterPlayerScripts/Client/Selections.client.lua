@@ -6,6 +6,7 @@
 -- // Services \\ --
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
@@ -40,6 +41,8 @@ local Selectables = {}
 local CanSelect = true
 local InRange = false
 local LastSelectable = nil
+
+local ButtonDownEffect = false
 
 local RANGE = 7
 local SELECTION_COOLDOWN = 0.5
@@ -90,13 +93,37 @@ Mouse.Button1Down:Connect(function()
 			if Model then
 				local Selectable = Model:FindFirstChild("Selectable")
 				if Selectable and not KitchenFolder.inAction.Value then
-					if Selectable.Occupied.Value == false and CanSelect then
-						CanSelect = false
-						SelectionBindables[Selectable.Bindable.Value]:Fire(Selectable)
-						wait(SELECTION_COOLDOWN)
-						CanSelect = true
-					end
+
 				end
+			end
+		end
+	end
+end)
+
+UserInputService.InputBegan:Connect(function(Input, GameProcessed) -- // On Key pressed
+	if GameProcessed then return end
+	if Input.KeyCode == KEY then
+		local closestSelectable = GetClosestSelectable()
+		if closestSelectable then
+			local selectable = closestSelectable.Selectable
+			if selectable.Occupied.Value == false then
+				SelectionBindables[selectable.Bindable.Value]:Fire(selectable)
+			end
+
+			-- // Button Down Effect \\ --
+			if not ButtonDownEffect then
+				ButtonDownEffect = true
+				local ButtonDownTween = TweenService:Create(
+					InteractionKey.Main.Tween,
+					TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In, 0, true),
+					{
+						Position = UDim2.fromScale(0.3, 0.3)
+					}
+				)
+				ButtonDownTween:Play()
+				ButtonDownTween.Completed:Connect(function()
+					ButtonDownEffect = false
+				end)
 			end
 		end
 	end
