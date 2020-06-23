@@ -1,6 +1,6 @@
 --[[
 	Notes:
-	- MUST UPDATE FOR MODELS. CURRENTLY WORKS FOR BASEPARTS ONLY
+	- None
 --]]
 
 -- // Services \\ --
@@ -53,7 +53,7 @@ local function GetClosestSelectable() -- // Get array of selectables in range
 	local InRange = {}
 	for _,v in pairs(Selectables) do
 		if v.Selectable.Occupied.Value == true then continue end
-		local mag = (v.Position-Player.Character.HumanoidRootPart.Position).Magnitude
+		local mag = (v.PrimaryPart.Position-Player.Character.HumanoidRootPart.Position).Magnitude
 		if (mag <= RANGE) and not inAction and not KitchenFolder.inAction.Value then
 			table.insert(InRange, {Model = v, Mag = mag})			
 		end
@@ -81,24 +81,6 @@ end
 
 -- // Main \\ --
 SetupSelectables()
-
-Mouse.Button1Down:Connect(function() 
-	local Character = Player.Character
-	if not Character or (Character and Character.Humanoid.Health <= 0) then return end
-	
-	if Mouse.Target then
-		local Target = Mouse.Target
-		if (Target.Position-Character.HumanoidRootPart.Position).Magnitude <= RANGE then
-			local Model = Target:FindFirstAncestorWhichIsA("Model")
-			if Model then
-				local Selectable = Model:FindFirstChild("Selectable")
-				if Selectable and not KitchenFolder.inAction.Value then
-
-				end
-			end
-		end
-	end
-end)
 
 UserInputService.InputBegan:Connect(function(Input, GameProcessed) -- // On Key pressed
 	if GameProcessed then return end

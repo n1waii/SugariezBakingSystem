@@ -44,33 +44,52 @@ local function StartProgress(model, action, t) -- // Progression UI for what act
 	ProgressUI:Destroy()
 end
 
+local function StarEffect(model)
+	local StarTween = TweenService:Create(
+		FoodModel.PrimaryPart.BillboardGui.Star, 
+		TweenInfo.new(2, Enum.EasingStyle.Linear), 
+		{
+			Rotation = 360
+		}
+	):Play()
+end
+
 -- // Client Kitchen Events \\ --
 KitchenRemotes.Mix.OnClientEvent:Connect(function(player, model, food, content) -- // Mixing visuals
-	pcall(function()
+	local success, err = pcall(function()
 		local DividedTime = (content.Time / #content.Ingredients)-1
 		local IngredientTweenInfo = TweenInfo.new(DividedTime/2.5, Enum.EasingStyle.Linear)
 		
 		StarterGui:SetCore("ResetButtonCallback", false)
 
-		spawn(function()
+		-- // Rotate Top In/Out \\ --
+		local TopTweenOut = TweenService:Create(model.Top, TweenInfo.new(1), {
+			CFrame = model.Top.CFrame * CFrame.Angles(0, 0, math.rad(90))
+		})
+
+		local TopTweenIn = TweenService:Create(model.Top, TweenInfo.new(1), {
+			CFrame = model.Top.CFrame * CFrame.Angles(0, 0, 0)
+		})
+
+		TopTweenOut:Play()
+		TopTweenOut.Completed:Wait()
+
+		coroutine.wrap(function()
 			StartProgress(model, "Mixing", content.Time)
-		end)
+		end)()
 		
 		local function TweenIngredient(ingredientName)
 			local Ingredient = Assets.Ingredients[ingredientName]:Clone()
 			Ingredient.Parent = workspace
 
-			local x,y,z = Ingredient.PrimaryPart.CFrame:ToEulerAnglesXYZ() -- // Get Rotation
-			local rot = CFrame.Angles(x,y,z)
-
-			Ingredient:SetPrimaryPartCFrame(player.Character.HumanoidRootPart.CFrame*rot)
+			Ingredient:SetPrimaryPartCFrame(player.Character.HumanoidRootPart.CFrame)
 			
 			local Tween1 = TweenService:Create(Ingredient.PrimaryPart, IngredientTweenInfo, {
-				CFrame = model.PrimaryPart.CFrame * CFrame.new(0, 2, 0) * rot
-			})	
+				CFrame = model.IngredientTween.CFrame * CFrame.new(0, 2, 0) 
+			})
 
 			local Tween2 = TweenService:Create(Ingredient.PrimaryPart, IngredientTweenInfo, {
-				CFrame = model.PrimaryPart.CFrame * rot
+				CFrame = model.IngredientTween.CFrame 
 			})
 
 			Tween1:Play()
@@ -89,61 +108,20 @@ KitchenRemotes.Mix.OnClientEvent:Connect(function(player, model, food, content) 
 		end
 		
 		for _,toolName in pairs(content.Ingredients) do
-			spawn(function()
+			coroutine.wrap(function()
 				TweenIngredient(toolName)
-			end)
+			end)()
 			wait(DividedTime)
 		end
-	
-		wait(3)
-		
-		local FoodModel = Assets.Ingredients[food]:Clone()
-		FoodModel.Parent = workspace
-		FoodModel:MoveTo(model.PrimaryPart.Position - Vector3.new(0, 1, 0))
-					
-		local x,y,z = FoodModel.PrimaryPart.CFrame:ToEulerAnglesXYZ()
-		local rot = CFrame.Angles(x,y,z)
-	
-		local FoodModelTween = TweenService:Create(
-			FoodModel.PrimaryPart, 
-			TweenInfo.new(1, Enum.EasingStyle.Linear), 
-			{
-				CFrame = FoodModel.PrimaryPart.CFrame * CFrame.new(0, 3, 0) * rot
-			}
-		)
-		
-		local FoodModelTween2 = TweenService:Create(
-			FoodModel.PrimaryPart, 
-			TweenInfo.new(1, Enum.EasingStyle.Linear), 
-			{
-				CFrame = player.Character.HumanoidRootPart.CFrame * rot
-			}
-		)
-		
-		local StarTween = TweenService:Create(
-			FoodModel.PrimaryPart.BillboardGui.Star, 
-			TweenInfo.new(2, Enum.EasingStyle.Linear), 
-			{
-				Rotation = 360
-			}
-		)
-		
-		FoodModelTween:Play()
-		StarTween:Play()
-		FoodModelTween.Completed:Wait()
-		wait(1)
-		FoodModelTween2:Play()
-		FoodModel.PrimaryPart.BillboardGui:Destroy()
-		for _,d in pairs(FoodModel:GetDescendants()) do -- // Fade effect
-			if d:IsA("BasePart") then
-				TweenService:Create(d, TweenInfo.new(1), {
-					Transparency = 1
-				}):Play()
-			end
-		end
-		wait(1)
-		FoodModel:Destroy()
+
+		TopTweenIn:Play()
+		TopTweenIn.Completed:Wait()
+		wait(2)
 		StarterGui:SetCore("ResetButtonCallback", true)
 	end)
+
+	if not success then
+		warn(err)
+	end
 end)
 
