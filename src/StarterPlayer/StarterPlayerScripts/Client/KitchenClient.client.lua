@@ -24,15 +24,15 @@ local Sound = require(ClientModules.Sound)
 local Recipes = require(SharedModules.Recipes)
 
 -- // Functions \\ --
-local function StartProgress(model, action, t) -- // Progression UI for what action you are doing.
-	local OldUI = model.PrimaryPart:FindFirstChild("ProgressUI")
+local function StartProgress(part, action, t) -- // Progression UI for what action you are doing.
+	local OldUI = part:FindFirstChild("ProgressUI")
 	if OldUI then 
 		OldUI:Destroy()
 	end
 	
 	local ProgressUI = KitchenAssets.ProgressUI:Clone()
 	ProgressUI.Action.Text = action .. "..."
-	ProgressUI.Parent = model.PrimaryPart
+	ProgressUI.Parent = part
 	
 	local ProgressTweenInfo = TweenInfo.new(t, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
 	local ProgressTween = TweenService:Create(ProgressUI.Main.Tween, ProgressTweenInfo, {
@@ -57,8 +57,8 @@ end
 -- // Client Kitchen Events \\ --
 KitchenRemotes.Mix.OnClientEvent:Connect(function(player, model, food, content) -- // Mixing visuals
 	local success, err = pcall(function()
-		local DividedTime = (content.Time / #content.Ingredients)-1
-		local IngredientTweenInfo = TweenInfo.new(DividedTime/2.5, Enum.EasingStyle.Linear)
+		local DividedTime = (content.Time/2.5) / #content.Ingredients
+		local IngredientTweenInfo = TweenInfo.new(DividedTime/2, Enum.EasingStyle.Linear)
 		
 		StarterGui:SetCore("ResetButtonCallback", false)
 
@@ -71,11 +71,20 @@ KitchenRemotes.Mix.OnClientEvent:Connect(function(player, model, food, content) 
 			CFrame = model.Top.CFrame * CFrame.Angles(0, 0, 0)
 		})
 
+		-- // Whisk Spinning \\ --
+		local WhiskSpin = TweenService:Create(
+			model.Whisk, 
+			TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.In, -1, false), 
+			{
+				CFrame = model.Whisk.CFrame * CFrame.Angles(0, math.rad(90), 0)
+			}
+		)
+
 		TopTweenOut:Play()
 		TopTweenOut.Completed:Wait()
 
 		coroutine.wrap(function()
-			StartProgress(model, "Mixing", content.Time)
+			StartProgress(model.Top, "Mixing", content.Time-1)
 		end)()
 		
 		local function TweenIngredient(ingredientName)
@@ -116,7 +125,12 @@ KitchenRemotes.Mix.OnClientEvent:Connect(function(player, model, food, content) 
 
 		TopTweenIn:Play()
 		TopTweenIn.Completed:Wait()
-		wait(2)
+		model.Whisk.Weld.Enabled = false
+		WhiskSpin:Play()
+		Sound:Add(365965609, 0.5, 3)
+		wait(3)
+		WhiskSpin:Cancel()
+		model.Whisk.Weld.Enabled = true
 		StarterGui:SetCore("ResetButtonCallback", true)
 	end)
 

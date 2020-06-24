@@ -7,7 +7,7 @@ local Recipes = {
 				"Flour",
 				"Vanilla Extract"
 			},
-			Time = 10,
+			Time = 8,
 		},
 	},
 	["Rolling Board"] = {

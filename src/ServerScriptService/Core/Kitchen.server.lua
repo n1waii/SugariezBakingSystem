@@ -55,7 +55,7 @@ KitchenRemotes.Mix.OnServerEvent:Connect(function(Player, selectable, food)
 					food,
 					Content
 				)
-				wait(Content.Time+2)
+				wait(Content.Time)
 				if Player ~= nil then
 					local FoodTool = ServerAssets.Kitchen.Ingredients[food]:Clone()
 					FoodTool.Parent = Player.Backpack
