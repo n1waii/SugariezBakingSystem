@@ -98,30 +98,29 @@ local function CloseInteractive()
 	end)
 end
 
-local function CreateOptions(optionsDict)
+local function CreateOptions(options)
 	if ViewingOptions then print("already viewing options") return end
 	ViewingOptions = true
 	InteractionKey.Main.Options.UIScale.Scale = 0
 	InteractionKey.Main.Interactive.UIScale.Scale = 0
 
-	for name, callback in pairs(optionsDict) do
+	for i, option in ipairs(options) do
 		local Option = InteractionKey.OptionTemplate:Clone()
-		Option.Tween.Text = name
-		Option.Parent = InteractionKey.Main.Options
+		Option.Tween.Text = i .. ". " .. option.Name
+		Option.Position = InteractionKey.Main.Options[i].Position
 		Option.Visible = true
-		Option.MouseButton1Click:Connect(callback)
-		print("created option ", name)
+		Option.Parent = InteractionKey.Main.Options
+		Option.MouseButton1Click:Connect(option.Callback)
 	end
 
 	-- // Elastic Effect \\ --
 	TweenService:Create(
 		InteractionKey.Main.Options.UIScale, 
-		TweenInfo.new(0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out),
+		TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
 		{
 			Scale = 1
 		}
 	):Play()
-	print("tweened")
 end
 
 local function DestroyOptions()
@@ -134,13 +133,13 @@ local function DestroyOptions()
 	)
 	t:Play()
 	t.Completed:Connect(function()
+		ViewingOptions = false
+		LastSelectable = nil
 		for _,option in pairs(InteractionKey.Main.Options:GetChildren()) do
 			if option.Name == "OptionTemplate" then
 				option:Destroy()
-				print("Destroyed option")
 			end
 		end
-		ViewingOptions = false
 	end)
 end
 
@@ -186,7 +185,6 @@ RunService.RenderStepped:Connect(function() -- // Selectable effect handler
 		InteractionKey.Adornee = closestSelectable.PrimaryPart
 		if not InRange or LastSelectable ~= closestSelectable then
 			if ViewingOptions then
-				print("Destroyed!")
 				DestroyOptions()
 			end
 			LastSelectable = closestSelectable
@@ -237,19 +235,22 @@ SelectionBindables.Vanilla.Event:Connect(function()
 end)
 
 SelectionBindables.OvenOptions.Event:Connect(function()
-	local OptionsDict = {
-		["Stove"] = function()
-			DestroyOptions()
-		end,
-
-		["Oven"] = function()
-			DestroyOptions()
-		end
+	local Options = {
+		{
+			Name = "Stove", 
+			Callback = function()
+				DestroyOptions()
+			end
+		},
+		{
+			Name = "Oven", 
+			Callback = function()
+				DestroyOptions()
+			end
+		}
 	}
 
-
-	CreateOptions(OptionsDict)
-	print("Created options")
+	CreateOptions(Options)
 end)
 
 SelectionBindables.Mix.Event:Connect(function(Selected)

@@ -1,6 +1,6 @@
 local Recipes = {
 	["Mixing Bowl"] = {
-		["Cake Batter"] = {
+		["Cupcake Mix"] = {
 			Id = 1,
 			Ingredients = {
 				"Egg",
@@ -10,14 +10,11 @@ local Recipes = {
 			Time = 8,
 		},
 	},
-	["Rolling Board"] = {
-		
-	},
 	["Oven"] = {
-		["Cake"] = {
-			Id = 3,
+		["Cupcake"] = {
+			Id = 2,
 			Ingredients = {
-				"Rolled Batter"
+				"Cupcake Mix Liner"
 			},
 			Time = 5,
 		}
