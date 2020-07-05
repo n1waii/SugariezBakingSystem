@@ -16,21 +16,21 @@ local ToolFunctions = require(SharedModules.ToolFunctions)
 -- // Main \\ --
 KitchenRemotes.GiveFlour.OnServerEvent:Connect(function(Player)
 	local Tools = ToolFunctions.GetTools(Player)
-	if ToolFunctions.FindToolFromName(Tools, "Flour") == nil then
+	if not Tools or ToolFunctions.FindToolFromName(Tools, "Flour") == nil then
 		ServerAssets.Kitchen.Ingredients["Flour"]:Clone().Parent = Player.Backpack
 	end
 end)
 
 KitchenRemotes.GiveEggs.OnServerEvent:Connect(function(Player)
 	local Tools = ToolFunctions.GetTools(Player)
-	if ToolFunctions.FindToolFromName(Tools, "Egg") == nil then
+	if not Tools or ToolFunctions.FindToolFromName(Tools, "Egg") == nil then
 		ServerAssets.Kitchen.Ingredients["Egg"]:Clone().Parent = Player.Backpack
 	end
 end)
 
 KitchenRemotes.GiveVanilla.OnServerEvent:Connect(function(Player)
 	local Tools = ToolFunctions.GetTools(Player)
-	if ToolFunctions.FindToolFromName(Tools, "Vanilla Extract") == nil then
+	if not Tools or ToolFunctions.FindToolFromName(Tools, "Vanilla Extract") == nil then
 		ServerAssets.Kitchen.Ingredients["Vanilla Extract"]:Clone().Parent = Player.Backpack
 	end
 end)

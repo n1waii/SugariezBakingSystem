@@ -46,12 +46,12 @@ local ButtonDownEffect = false
 local TweeningInteractive = false
 
 local RANGE = 7
-local SELECTION_COOLDOWN = 0.5
 local KEY = Enum.KeyCode.E
 
 -- // Functions \\ --
 local function GetClosestSelectable() -- // Get array of selectables in range 
 	local InRange = {}
+
 	for _,v in pairs(Selectables) do
 		if v.Selectable.Occupied.Value then continue end
 		local mag = (v.PrimaryPart.Position-Player.Character.HumanoidRootPart.Position).Magnitude
@@ -99,21 +99,20 @@ local function CloseInteractive()
 end
 
 local function CreateOptions(options)
-	if ViewingOptions then print("already viewing options") return end
+	if ViewingOptions then return end
 	ViewingOptions = true
 	InteractionKey.Main.Options.UIScale.Scale = 0
 	InteractionKey.Main.Interactive.UIScale.Scale = 0
-
+	
 	for i, option in ipairs(options) do
 		local Option = InteractionKey.OptionTemplate:Clone()
-		Option.Tween.Text = i .. ". " .. option.Name
+		Option.Tween.Text = " (" .. i .. ") " .. option.Name .. " "
 		Option.Position = InteractionKey.Main.Options[i].Position
 		Option.Visible = true
 		Option.Parent = InteractionKey.Main.Options
 		Option.MouseButton1Click:Connect(option.Callback)
 	end
 
-	-- // Elastic Effect \\ --
 	TweenService:Create(
 		InteractionKey.Main.Options.UIScale, 
 		TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
@@ -152,7 +151,7 @@ UserInputService.InputBegan:Connect(function(Input, GameProcessed) -- // On Key 
 		local closestSelectable = GetClosestSelectable()
 		if closestSelectable then
 			local selectable = closestSelectable.Selectable
-			if selectable.Occupied.Value == false then
+			if not selectable.Occupied.Value then
 				SelectionBindables[selectable.Bindable.Value]:Fire(selectable)
 			end
 
@@ -160,10 +159,10 @@ UserInputService.InputBegan:Connect(function(Input, GameProcessed) -- // On Key 
 			if not ButtonDownEffect then
 				ButtonDownEffect = true
 				local ButtonDownTween = TweenService:Create(
-					InteractionKey.Main.Interactive.Label,
+					InteractionKey.Main.Interactive.Tween,
 					TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.In, 0, true),
 					{
-						Position = UDim2.fromScale(0, 0)
+						Position = UDim2.fromScale(0, 0.1)
 					}
 				)
 				ButtonDownTween:Play()
@@ -193,7 +192,7 @@ RunService.RenderStepped:Connect(function() -- // Selectable effect handler
 			InteractionKey.Main.Interactive.UIScale.Scale = 0
 			local t = TweenService:Create(
 				InteractionKey.Main.Interactive.UIScale, 
-				TweenInfo.new(0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out),
+				TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
 				{
 					Scale = 1
 				}
@@ -215,21 +214,21 @@ end)
 -- // Selection Events \\ --
 SelectionBindables.Eggs.Event:Connect(function()
 	local Tools = ToolFunctions.GetTools(Player)
-	if ToolFunctions.FindToolFromName(Tools, "Eggs") == nil then
+	if not Tools or ToolFunctions.FindToolFromName(Tools, "Eggs") == nil then
 		KitchenRemotes.GiveEggs:FireServer()
 	end
 end)
 
 SelectionBindables.Flour.Event:Connect(function()
 	local Tools = ToolFunctions.GetTools(Player)
-	if ToolFunctions.FindToolFromName(Tools, "Flour") == nil then
+	if not Tools or ToolFunctions.FindToolFromName(Tools, "Flour") == nil then
 		KitchenRemotes.GiveFlour:FireServer()
 	end
 end)
 
 SelectionBindables.Vanilla.Event:Connect(function()
 	local Tools = ToolFunctions.GetTools(Player)
-	if ToolFunctions.FindToolFromName(Tools, "Vanilla Extract") == nil then
+	if not Tools or ToolFunctions.FindToolFromName(Tools, "Vanilla Extract") == nil then
 		KitchenRemotes.GiveVanilla:FireServer()
 	end
 end)
@@ -256,51 +255,18 @@ end)
 SelectionBindables.Mix.Event:Connect(function(Selected)
 	local Tools = ToolFunctions.GetTools(Player)
 
-	local function ChooseRecipe(food)
-		KitchenRemotes.Mix:FireServer(Selected, food)
-	end
-
 	if Tools then
 		local AvailableRecipes = Recipes.FindRecipes("Mixing Bowl", Tools)
 		if AvailableRecipes ~= nil then -- // Makes sure they have the tools to mix something 
-			inAction = true
-			local UI = UserInterface.MixUI:Clone()
+			local Options = {}
 
-			local function Close() -- // Closes mixing UI
-				UI.Main:TweenPosition(
-					UDim2.new(0.345, 0, 1.231, 0), 
-					"Out", 
-					"Linear", 
-					0.3, 
-					false, 
-					function()
-						UI:Destroy()
-						inAction = false
-					end
-				)	
+			for foodName, content in pairs(AvailableRecipes) do
+				table.insert(Options, {Name = foodName, Callback = function()
+					KitchenRemotes.Mix:FireServer(Selected, foodName)
+				end})
 			end
 
-			for food, content in pairs(AvailableRecipes) do
-				UI.Main.ScrollingFrame.CanvasSize = UDim2.new(
-					0, 
-					0, 
-					UI.Main.ScrollingFrame.CanvasSize.Y.Scale + 0.03,
-					0
-				)
-
-				local Template = UI.Template:Clone()
-				Template.RecipeLabel.Text = food
-				Template.Visible = true
-				Template.Parent = UI.Main.ScrollingFrame
-				Template.Choose.MouseButton1Click:Connect(function()
-					ChooseRecipe(food)
-					Close()
-				end)
-			end
-
-			UI.Parent = Player.PlayerGui
-			UI.Main:TweenPosition(UDim2.new(0.345, 0, 0.231, 0), "In", "Linear", 0.3)
-			UI.Main.Close.MouseButton1Click:Connect(Close)			
+			CreateOptions(Options)	
 		end
 	end
 end)

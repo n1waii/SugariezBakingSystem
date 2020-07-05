@@ -6,6 +6,7 @@ end
 
 function Module.GetTools(Player)
 	local Tools = {}
+	
 	for _,v in pairs(Player.Backpack:GetChildren()) do
 		if v:IsA("Tool") then
 			table.insert(Tools, v)
@@ -17,7 +18,7 @@ function Module.GetTools(Player)
 		table.insert(Tools, HoldingTool)
 	end
 	
-	return Tools
+	return #Tools > 0 and Tools or nil
 end
 
 function Module.GetToolsFromArray(player, array)

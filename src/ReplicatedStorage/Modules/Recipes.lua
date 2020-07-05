@@ -9,6 +9,16 @@ local Recipes = {
 			},
 			Time = 8,
 		},
+
+		["Chocolate Cupcake Mix"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
 	},
 	["Oven"] = {
 		["Cupcake"] = {
@@ -28,15 +38,20 @@ function Recipes.FindRecipes(machine, tools)
 		local t = 0
 		for _,tool in pairs(tools) do
 			if table.find(content.Ingredients, tool.Name) then
-				t = t + 1
+				t += 1
 			end
 		end
 		if t == #content.Ingredients then
 			thisRecipes[food] = content
 		end
 	end
-	
-	return thisRecipes ~= nil and thisRecipes or nil
+
+	-- // Checking if dictionary is empty by looping since "#" operator only works on arrays \\ --
+	for _ in pairs(thisRecipes) do
+		return thisRecipes
+	end
+
+	return nil	
 end
 
 
