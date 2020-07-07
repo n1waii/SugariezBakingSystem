@@ -10,7 +10,124 @@ local Recipes = {
 			Time = 8,
 		},
 
-		["Chocolate Cupcake Mix"] = {
+		["_plawps"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_mdiow"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_kdwam"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_dmwap"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_ndow"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_mpdsa"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_dmsadpl"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_owo"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_dosapd"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_odsap"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_lpl"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_kdsakl"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_dsad"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_jdsa"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",

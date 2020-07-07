@@ -1,6 +1,6 @@
 --[[
 	Notes:
-	- None
+	- Keyboard number functionality doesn't work. 
 --]]
 
 -- // Services \\ --
@@ -31,12 +31,24 @@ local Assets = ReplicatedStorage.Assets
 local KitchenAssets = Assets.Kitchen
 local UserInterface = Assets.UserInterface
 
-local Selection = require(ClientModules.Selection)
 local ToolFunctions = require(SharedModules.ToolFunctions)
 local Sound = require(ClientModules.Sound)
 local Recipes = require(SharedModules.Recipes)
 
+local KeyCodeToIndex = {
+	[Enum.KeyCode.One] = 1,
+	[Enum.KeyCode.Two] = 2,
+	[Enum.KeyCode.Three] = 3,
+	[Enum.KeyCode.Four] = 4,
+	[Enum.KeyCode.Five] = 5,
+	[Enum.KeyCode.Six] = 6,
+	[Enum.KeyCode.Seven] = 7,
+	[Enum.KeyCode.Eight] = 8,
+}
+
 local Selectables = {}
+local Options = {}
+local CurrentSection = nil
 
 local InRange = false
 local ViewingOptions = false
@@ -70,13 +82,21 @@ local function GetClosestSelectable() -- // Get array of selectables in range
 	return nil
 end
 
+local function ShiftTable(tbl, inc) -- // Shifts table by increment
+	local shiftedTable = {}
+	for i,v in pairs(tbl) do
+		shiftedTable[i+inc] = v
+	end
+	return shiftedTable
+end
+
 local function SetupSelectables() --// Sorts all selectables into a table
 	for _,v in pairs(workspace:GetDescendants()) do
-		--if v:IsA("Model") then
+		if v:IsA("Model") then
 			if v:FindFirstChild("Selectable") then
 				table.insert(Selectables, v)
 			end
-		--end
+		end
 	end
 end
 
@@ -98,13 +118,68 @@ local function CloseInteractive()
 	end)
 end
 
-local function CreateOptions(options)
-	if ViewingOptions then return end
+local function CreateOptions(chosenSection, multiplePages)
+	if ViewingOptions and chosenSection == CurrentSection then return end
 	ViewingOptions = true
 	InteractionKey.Main.Options.UIScale.Scale = 0
 	InteractionKey.Main.Interactive.UIScale.Scale = 0
+	CurrentSection = chosenSection
+
+	local optionSections = nil
+
+	-- // Multiple page handling \\ --
+	if multiplePages then 
+		local dividedOptions = {}
+		local sections = math.ceil(#Options/8)
+		for section = 1, sections do
+			dividedOptions[section] = {}
+			-- // Create Next and Back Button \\ --
+			if section == 1 then
+				dividedOptions[section][1] = {
+					Name = "Next",
+					Callback = function()
+						print("next")
+						CreateOptions(2, true)
+					end,
+				}
+			elseif section > 1 and section < sections then
+				dividedOptions[section][1] = {
+					Name = "Next",
+					Callback = function()
+						print("next")
+						CreateOptions(section+1, true)
+					end,
+				}
+				dividedOptions[section][2] = {
+					Name = "Back",
+					Callback = function()
+						print("back")
+						CreateOptions(section-1, true)
+					end,
+				}
+			elseif section == sections then
+				dividedOptions[section][1] = {
+					Name = "Back",
+					Callback = function()
+						print("back")
+						CreateOptions(section-1, true)
+					end,
+				}
+			end
+			local start = section*8-(7-#dividedOptions[section])
+			local finish = section*8 
+			for i = start, finish do
+				if not Options[i] then break end
+				table.insert(dividedOptions[section], Options[i]) 
+			end
+		end
+
+		optionSections = dividedOptions
+	else
+		optionSections = {[1] = Options}
+	end
 	
-	for i, option in ipairs(options) do
+	for i, option in pairs(optionSections[CurrentSection]) do
 		local Option = InteractionKey.OptionTemplate:Clone()
 		Option.Tween.Text = " (" .. i .. ") " .. option.Name .. " "
 		Option.Position = InteractionKey.Main.Options[i].Position
@@ -112,7 +187,7 @@ local function CreateOptions(options)
 		Option.Parent = InteractionKey.Main.Options
 		Option.MouseButton1Click:Connect(option.Callback)
 	end
-
+	
 	TweenService:Create(
 		InteractionKey.Main.Options.UIScale, 
 		TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out),
@@ -123,6 +198,8 @@ local function CreateOptions(options)
 end
 
 local function DestroyOptions()
+	Options = {}
+	CurrentSection = nil
 	local t = TweenService:Create(
 		InteractionKey.Main.Options.UIScale, 
 		TweenInfo.new(0.1, Enum.EasingStyle.Linear),
@@ -145,7 +222,7 @@ end
 -- // Main \\ --
 SetupSelectables()
 
-UserInputService.InputBegan:Connect(function(Input, GameProcessed) -- // On Key pressed
+UserInputService.InputBegan:Connect(function(Input, GameProcessed) -- // On Keys pressed
 	if GameProcessed or TweeningInteractive then return end
 	if Input.KeyCode == KEY then
 		local closestSelectable = GetClosestSelectable()
@@ -169,6 +246,15 @@ UserInputService.InputBegan:Connect(function(Input, GameProcessed) -- // On Key 
 				ButtonDownTween.Completed:Connect(function()
 					ButtonDownEffect = false
 				end)
+			end
+		end
+	end
+
+	if #Options ~= 0 then
+		if KeyCodeToIndex[Input.KeyCode] then -- // If it's a number between 1-8
+			local num = KeyCodeToIndex[Input.KeyCode]
+			if Options[CurrentSection][num] then -- // If there is an option assigned
+				Options[CurrentSection][num].Callback() -- // Run callback function
 			end
 		end
 	end
@@ -234,7 +320,7 @@ SelectionBindables.Vanilla.Event:Connect(function()
 end)
 
 SelectionBindables.OvenOptions.Event:Connect(function()
-	local Options = {
+	Options = {
 		{
 			Name = "Stove", 
 			Callback = function()
@@ -249,7 +335,7 @@ SelectionBindables.OvenOptions.Event:Connect(function()
 		}
 	}
 
-	CreateOptions(Options)
+	CreateOptions(1, false)
 end)
 
 SelectionBindables.Mix.Event:Connect(function(Selected)
@@ -258,15 +344,16 @@ SelectionBindables.Mix.Event:Connect(function(Selected)
 	if Tools then
 		local AvailableRecipes = Recipes.FindRecipes("Mixing Bowl", Tools)
 		if AvailableRecipes ~= nil then -- // Makes sure they have the tools to mix something 
-			local Options = {}
+			Options = {}
 
 			for foodName, content in pairs(AvailableRecipes) do
+				print(t)
 				table.insert(Options, {Name = foodName, Callback = function()
 					KitchenRemotes.Mix:FireServer(Selected, foodName)
 				end})
 			end
 
-			CreateOptions(Options)	
+			CreateOptions(1, #Options>8)	
 		end
 	end
 end)
