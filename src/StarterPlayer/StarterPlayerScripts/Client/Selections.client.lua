@@ -1,6 +1,6 @@
 --[[
 	Notes:
-	- Keyboard number functionality doesn't work. 
+	- None
 --]]
 
 -- // Services \\ --
@@ -48,6 +48,7 @@ local KeyCodeToIndex = {
 
 local Selectables = {}
 local Options = {}
+local OptionSection = {}
 local CurrentSection = nil
 
 local InRange = false
@@ -82,14 +83,6 @@ local function GetClosestSelectable() -- // Get array of selectables in range
 	return nil
 end
 
-local function ShiftTable(tbl, inc) -- // Shifts table by increment
-	local shiftedTable = {}
-	for i,v in pairs(tbl) do
-		shiftedTable[i+inc] = v
-	end
-	return shiftedTable
-end
-
 local function SetupSelectables() --// Sorts all selectables into a table
 	for _,v in pairs(workspace:GetDescendants()) do
 		if v:IsA("Model") then
@@ -98,6 +91,14 @@ local function SetupSelectables() --// Sorts all selectables into a table
 			end
 		end
 	end
+end
+
+local function ShiftTable(tbl, inc) -- // Shifts array-like table by increment
+	local shiftedTable = {}
+	for i,v in pairs(tbl) do
+		shiftedTable[i+inc] = v
+	end
+	return shiftedTable
 end
 
 local function CloseInteractive()
@@ -123,54 +124,58 @@ local function CreateOptions(chosenSection, multiplePages)
 	ViewingOptions = true
 	InteractionKey.Main.Options.UIScale.Scale = 0
 	InteractionKey.Main.Interactive.UIScale.Scale = 0
-	CurrentSection = chosenSection
-
+	warn(chosenSection)
 	local optionSections = nil
+
 
 	-- // Multiple page handling \\ --
 	if multiplePages then 
 		local dividedOptions = {}
 		local sections = math.ceil(#Options/8)
-		for section = 1, sections do
+		print("Max Sections:", sections)
+		for section = 1, sections, 1 do
 			dividedOptions[section] = {}
 			-- // Create Next and Back Button \\ --
-			if section == 1 then
-				dividedOptions[section][1] = {
-					Name = "Next",
-					Callback = function()
-						print("next")
-						CreateOptions(2, true)
-					end,
-				}
-			elseif section > 1 and section < sections then
-				dividedOptions[section][1] = {
-					Name = "Next",
-					Callback = function()
-						print("next")
-						CreateOptions(section+1, true)
-					end,
-				}
-				dividedOptions[section][2] = {
-					Name = "Back",
-					Callback = function()
-						print("back")
-						CreateOptions(section-1, true)
-					end,
-				}
-			elseif section == sections then
-				dividedOptions[section][1] = {
-					Name = "Back",
-					Callback = function()
-						print("back")
-						CreateOptions(section-1, true)
-					end,
-				}
+			local next = {
+				Name = "Next",
+				Callback = function()
+					print("next")
+					CreateOptions(section+1, true)
+				end,
+			}
+
+			local back = {
+				Name = "Back",
+				Callback = function()
+					print("back")
+					CreateOptions(section-1, true)
+				end,
+			}
+
+			if section < sections then
+				table.insert(dividedOptions[section], next) 
 			end
-			local start = section*8-(7-#dividedOptions[section])
-			local finish = section*8 
-			for i = start, finish do
-				if not Options[i] then break end
-				table.insert(dividedOptions[section], Options[i]) 
+			
+			if section > 1 then
+				table.insert(dividedOptions[section], back) 
+			end
+			
+			local finish = section*8
+			local start = finish-7
+						
+			for optionIndex = start, finish do
+				warn(Options[1].Name)
+				print("OptionIndex:", optionIndex)
+				if #dividedOptions[section] == 8 then 
+					print("section filled up")
+					break
+				elseif not Options[optionIndex] then
+					print("option does not exist")
+					break 
+				end
+				print("Option Name:", Options[optionIndex].Name)
+				print("Section:", section)
+				table.insert(dividedOptions[section], Options[optionIndex]) 
 			end
 		end
 
@@ -178,11 +183,24 @@ local function CreateOptions(chosenSection, multiplePages)
 	else
 		optionSections = {[1] = Options}
 	end
-	
-	for i, option in pairs(optionSections[CurrentSection]) do
+
+	OptionSection = optionSections[chosenSection]
+
+	-- // Destroy old options \\ --
+	for _,option in pairs(InteractionKey.Main.Options:GetChildren()) do
+		if option.Name == "OptionTemplate" then
+			option:Destroy()
+		end
+	end
+
+	-- // Create new options \\ --
+	for i, option in pairs(OptionSection) do
 		local Option = InteractionKey.OptionTemplate:Clone()
 		Option.Tween.Text = " (" .. i .. ") " .. option.Name .. " "
 		Option.Position = InteractionKey.Main.Options[i].Position
+		Option.Tween.TextColor3 = option.Name == "Next" and Color3.fromRGB(118, 242, 56)
+		or option.Name == "Back" and Color3.fromRGB(240, 67, 14)
+		or Option.Tween.TextColor3
 		Option.Visible = true
 		Option.Parent = InteractionKey.Main.Options
 		Option.MouseButton1Click:Connect(option.Callback)
@@ -199,7 +217,7 @@ end
 
 local function DestroyOptions()
 	Options = {}
-	CurrentSection = nil
+	OptionSection = {}
 	local t = TweenService:Create(
 		InteractionKey.Main.Options.UIScale, 
 		TweenInfo.new(0.1, Enum.EasingStyle.Linear),
@@ -250,11 +268,15 @@ UserInputService.InputBegan:Connect(function(Input, GameProcessed) -- // On Keys
 		end
 	end
 
-	if #Options ~= 0 then
+	if #Options > 0  then -- // If there are options
+		print("there are options")
 		if KeyCodeToIndex[Input.KeyCode] then -- // If it's a number between 1-8
+			print("its a number between 1-8")
 			local num = KeyCodeToIndex[Input.KeyCode]
-			if Options[CurrentSection][num] then -- // If there is an option assigned
-				Options[CurrentSection][num].Callback() -- // Run callback function
+			print("Number", num)
+			if OptionSection[num] then -- // If there is an option assigned
+				print("found it ")
+				OptionSection[num].Callback() -- // Run callback function
 			end
 		end
 	end
@@ -347,7 +369,6 @@ SelectionBindables.Mix.Event:Connect(function(Selected)
 			Options = {}
 
 			for foodName, content in pairs(AvailableRecipes) do
-				print(t)
 				table.insert(Options, {Name = foodName, Callback = function()
 					KitchenRemotes.Mix:FireServer(Selected, foodName)
 				end})

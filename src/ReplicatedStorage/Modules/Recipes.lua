@@ -136,6 +136,24 @@ local Recipes = {
 			},
 			Time = 8,
 		},
+		["_jddsaa"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
+		["_jddsadsaa"] = {
+			Id = 3,
+			Ingredients = {
+				"Egg",
+				"Flour",
+				"Vanilla Extract"
+			},
+			Time = 8,
+		},
 	},
 	["Oven"] = {
 		["Cupcake"] = {
