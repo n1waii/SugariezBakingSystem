@@ -55,6 +55,12 @@ local function StarEffect(model)
 end
 
 -- // Client Kitchen Events \\ --
+KitchenRemotes.Counter.OnClientEvent:Connect(function(player, model, toolModel)
+	TweenService:Create(toolModel.PrimaryPart, TweenInfo.new(0.5), {
+		CFrame = model.Placement.CFrame
+	}):Play()
+end)
+
 KitchenRemotes.Mix.OnClientEvent:Connect(function(player, model, food, content) -- // Mixing visuals
 	local success, err = pcall(function()
 		local DividedTime = (content.Time/2.5) / #content.Ingredients

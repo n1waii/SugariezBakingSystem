@@ -66,6 +66,7 @@ local function GetClosestSelectable() -- // Get array of selectables in range
 	local InRange = {}
 
 	for _,v in pairs(Selectables) do
+		if v == nil then continue end
 		if v.Selectable.Occupied.Value then continue end
 		local mag = (v.PrimaryPart.Position-Player.Character.HumanoidRootPart.Position).Magnitude
 		if (mag <= RANGE) and not inAction and not KitchenFolder.inAction.Value then
@@ -84,6 +85,7 @@ local function GetClosestSelectable() -- // Get array of selectables in range
 end
 
 local function SetupSelectables() --// Sorts all selectables into a table
+	Selectables = {}
 	for _,v in pairs(workspace:GetDescendants()) do
 		if v:IsA("Model") then
 			if v:FindFirstChild("Selectable") then
@@ -132,7 +134,6 @@ local function CreateOptions(chosenSection, multiplePages)
 	if multiplePages then 
 		local dividedOptions = {}
 		local sections = math.ceil(#Options/8)
-		print("Max Sections:", sections)
 		for section = 1, sections, 1 do
 			dividedOptions[section] = {}
 			-- // Create Next and Back Button \\ --
@@ -164,17 +165,11 @@ local function CreateOptions(chosenSection, multiplePages)
 			local start = finish-7
 						
 			for optionIndex = start, finish do
-				warn(Options[1].Name)
-				print("OptionIndex:", optionIndex)
 				if #dividedOptions[section] == 8 then 
-					print("section filled up")
 					break
 				elseif not Options[optionIndex] then
-					print("option does not exist")
 					break 
 				end
-				print("Option Name:", Options[optionIndex].Name)
-				print("Section:", section)
 				table.insert(dividedOptions[section], Options[optionIndex]) 
 			end
 		end
@@ -199,7 +194,7 @@ local function CreateOptions(chosenSection, multiplePages)
 		Option.Tween.Text = " (" .. i .. ") " .. option.Name .. " "
 		Option.Position = InteractionKey.Main.Options[i].Position
 		Option.Tween.TextColor3 = option.Name == "Next" and Color3.fromRGB(118, 242, 56)
-		or option.Name == "Back" and Color3.fromRGB(240, 67, 14)
+		or (option.Name == "Back" or option.Name == "Close" or option.Name == "Remove") and Color3.fromRGB(240, 67, 14)
 		or Option.Tween.TextColor3
 		Option.Visible = true
 		Option.Parent = InteractionKey.Main.Options
@@ -240,6 +235,8 @@ end
 -- // Main \\ --
 SetupSelectables()
 
+Remotes.RefreshSelectables.OnClientEvent:Connect(SetupSelectables)
+
 UserInputService.InputBegan:Connect(function(Input, GameProcessed) -- // On Keys pressed
 	if GameProcessed or TweeningInteractive then return end
 	if Input.KeyCode == KEY then
@@ -269,13 +266,9 @@ UserInputService.InputBegan:Connect(function(Input, GameProcessed) -- // On Keys
 	end
 
 	if #Options > 0  then -- // If there are options
-		print("there are options")
 		if KeyCodeToIndex[Input.KeyCode] then -- // If it's a number between 1-8
-			print("its a number between 1-8")
 			local num = KeyCodeToIndex[Input.KeyCode]
-			print("Number", num)
 			if OptionSection[num] then -- // If there is an option assigned
-				print("found it ")
 				OptionSection[num].Callback() -- // Run callback function
 			end
 		end
@@ -320,44 +313,148 @@ RunService.RenderStepped:Connect(function() -- // Selectable effect handler
 end)
 
 -- // Selection Events \\ --
-SelectionBindables.Eggs.Event:Connect(function()
-	local Tools = ToolFunctions.GetTools(Player)
-	if not Tools or ToolFunctions.FindToolFromName(Tools, "Eggs") == nil then
-		KitchenRemotes.GiveEggs:FireServer()
-	end
-end)
-
-SelectionBindables.Flour.Event:Connect(function()
-	local Tools = ToolFunctions.GetTools(Player)
-	if not Tools or ToolFunctions.FindToolFromName(Tools, "Flour") == nil then
-		KitchenRemotes.GiveFlour:FireServer()
-	end
-end)
-
-SelectionBindables.Vanilla.Event:Connect(function()
-	local Tools = ToolFunctions.GetTools(Player)
-	if not Tools or ToolFunctions.FindToolFromName(Tools, "Vanilla Extract") == nil then
-		KitchenRemotes.GiveVanilla:FireServer()
-	end
-end)
-
-SelectionBindables.OvenOptions.Event:Connect(function()
+SelectionBindables.Fridge.Event:Connect(function()
 	Options = {
 		{
-			Name = "Stove", 
+			Name = "Eggs", 
 			Callback = function()
+				KitchenRemotes.GiveIngredient:FireServer("Egg")
 				DestroyOptions()
 			end
 		},
 		{
-			Name = "Oven", 
+			Name = "Flour", 
+			Callback = function()
+				KitchenRemotes.GiveIngredient:FireServer("Flour")
+				DestroyOptions()
+			end
+		},
+		{
+			Name = "Vanilla", 
+			Callback = function()
+				KitchenRemotes.GiveIngredient:FireServer("Vanilla Extract")
+				DestroyOptions()
+			end
+		},
+	}
+	CreateOptions(1, false)
+end)
+
+SelectionBindables.CupcakeMix.Event:Connect(function(Selected)
+	if Selected.Occupant.Value ~= Player then return end
+	local Tools = ToolFunctions.GetTools(Player)
+
+	if Tools then
+		local Tool = ToolFunctions.FindToolFromName(Tools, "Cupcake Liner")
+		if Tool then
+			Options = {
+				{
+					Name = "Fill Cupcake Liner", 
+					Callback = function()
+						KitchenRemotes.CupcakeMix:FireServer(Selected, Tool)
+						DestroyOptions()
+					end
+				},
+				{
+					Name = "Remove", 
+					Callback = function()
+						DestroyOptions()
+					end
+				},
+			}
+		else
+			Options = {
+				{
+					Name = "Remove", 
+					Callback = function()
+						DestroyOptions()
+					end
+				},
+				{
+					Name = "Close", 
+					Callback = function()
+						DestroyOptions()
+					end
+				},
+			}
+		end
+		CreateOptions(1, false)
+	end
+end)
+
+SelectionBindables.Items.Event:Connect(function()
+	Options = {
+		{
+			Name = "Cupcake Liner", 
+			Callback = function()
+				KitchenRemotes.GiveItem:FireServer("Cupcake Liner")
+				DestroyOptions()
+			end
+		},
+		{
+			Name = "Close", 
 			Callback = function()
 				DestroyOptions()
 			end
 		}
 	}
-
 	CreateOptions(1, false)
+end)
+
+SelectionBindables.Counter.Event:Connect(function(Selected)
+	local Tools = ToolFunctions.GetTools(Player)
+	if Tools then
+		Options = {}
+
+		for _,tool in pairs(Tools) do
+			if tool:FindFirstChild("Placeable") then
+				table.insert(Options, {
+					Name = "Place " .. tool.Name, 
+					Callback = function()
+						KitchenRemotes.Counter:FireServer(Selected, tool)
+						DestroyOptions()
+					end
+				})
+			end
+		end
+		
+		if #Options == 1 then
+			table.insert(Options, {
+				Name = "Close", 
+				Callback = function()
+					DestroyOptions()
+				end
+			})
+		end
+
+		if #Options > 0 then
+			CreateOptions(1, false)
+		end
+	end
+end)
+
+SelectionBindables.Oven.Event:Connect(function(Selected)
+	local Tools = ToolFunctions.GetTools(Player)
+
+	if Tools then
+		Options = {
+			{
+				Name = "Stove", 
+				Callback = function()
+					KitchenRemotes.Stove:FireServer(Selected)
+					DestroyOptions()
+				end
+			},
+			{
+				Name = "Oven", 
+				Callback = function()
+					KitchenRemotes.Oven:FireServer(Selected)
+					DestroyOptions()
+				end
+			}
+		}
+		CreateOptions(1, false)
+	end
 end)
 
 SelectionBindables.Mix.Event:Connect(function(Selected)

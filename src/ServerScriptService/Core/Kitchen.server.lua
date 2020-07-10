@@ -1,3 +1,8 @@
+--[[
+	Notes:
+		- Destroy placed items when player leaves and set Selectable.Occupant to nil 
+--]]
+
 -- // Services \\ --
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
@@ -8,31 +13,58 @@ local SharedModules = ReplicatedStorage.Modules
 local Remotes = ReplicatedStorage.Remotes
 local KitchenRemotes = Remotes.Kitchen
 local ServerAssets = ServerStorage.Assets
+local SharedAssets = ReplicatedStorage.Assets
 
 local Recipes = require(SharedModules.Recipes)
 local TimeoutWait = require(SharedModules.TimeoutWait)
 local ToolFunctions = require(SharedModules.ToolFunctions)
 
 -- // Main \\ --
-KitchenRemotes.GiveFlour.OnServerEvent:Connect(function(Player)
+KitchenRemotes.GiveIngredient.OnServerEvent:Connect(function(Player, ingredientName)
 	local Tools = ToolFunctions.GetTools(Player)
-	if not Tools or ToolFunctions.FindToolFromName(Tools, "Flour") == nil then
-		ServerAssets.Kitchen.Ingredients["Flour"]:Clone().Parent = Player.Backpack
+	if not Tools or ToolFunctions.FindToolFromName(Tools, ingredientName) == nil then
+		local ingredient = ServerAssets.Kitchen.Ingredients:FindFirstChild(ingredientName)
+		if not ingredient then return end
+		ingredient:Clone().Parent = Player.Backpack
 	end
 end)
 
-KitchenRemotes.GiveEggs.OnServerEvent:Connect(function(Player)
+KitchenRemotes.GiveItem.OnServerEvent:Connect(function(Player, itemName)
 	local Tools = ToolFunctions.GetTools(Player)
-	if not Tools or ToolFunctions.FindToolFromName(Tools, "Egg") == nil then
-		ServerAssets.Kitchen.Ingredients["Egg"]:Clone().Parent = Player.Backpack
+	if not Tools or ToolFunctions.FindToolFromName(Tools, ingredientName) == nil then
+		local item = ServerAssets.Kitchen.Items:FindFirstChild(itemName)
+		if not item then return end
+		item:Clone().Parent = Player.Backpack
 	end
 end)
 
-KitchenRemotes.GiveVanilla.OnServerEvent:Connect(function(Player)
-	local Tools = ToolFunctions.GetTools(Player)
-	if not Tools or ToolFunctions.FindToolFromName(Tools, "Vanilla Extract") == nil then
-		ServerAssets.Kitchen.Ingredients["Vanilla Extract"]:Clone().Parent = Player.Backpack
+KitchenRemotes.Counter.OnServerEvent:Connect(function(Player, selectable, tool)
+	if not selectable.Occupied.Value then
+		local Character = Player.Character
+		if not Character then return end
+		selectable.Occupied.Value = true
+		selectable.Occupant.Value = Player
+		local toolClone = SharedAssets.Ingredients[tool.Name]:Clone()
+		toolClone.PrimaryPart.Position = Character.HumanoidRootPart.Position 
+		toolClone.Selectable.Occupant.Value = Player
+		toolClone.Parent = selectable.Parent
+		tool:Destroy()
+		KitchenRemotes.Counter:FireAllClients(
+			Player,
+			selectable.Parent, 
+			toolClone
+		)
+		Remotes.RefreshSelectables:FireClient(Player)
 	end
+end)
+
+KitchenRemotes.CupcakeMix.OnServerEvent:Connect(function(Player, selectable, tool)
+	tool:Destroy()
+	Remotes.RefreshSelectables:FireClient(Player)
+	ServerAssets.Kitchen.Ingredients["Liner w/ Cupcake Mix"]:Clone().Parent = Player.Backpack
+	selectable.Parent.Parent.Selectable.Occupied.Value = false
+	selectable.Parent.Parent.Selectable.Occupant.Value = nil
+	selectable.Parent:Destroy()
 end)
 
 KitchenRemotes.Mix.OnServerEvent:Connect(function(Player, selectable, food)

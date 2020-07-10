@@ -10,7 +10,7 @@ local Recipes = {
 			Time = 8,
 		},
 
-		["_plawps"] = {
+		["Strawberry Cake Mix"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -19,7 +19,7 @@ local Recipes = {
 			},
 			Time = 8,
 		},
-		["_mdiow"] = {
+		["Cake 1"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -28,7 +28,7 @@ local Recipes = {
 			},
 			Time = 8,
 		},
-		["_kdwam"] = {
+		["Cake 2"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -37,7 +37,7 @@ local Recipes = {
 			},
 			Time = 8,
 		},
-		["_dmwap"] = {
+		["Cake 3"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -46,7 +46,7 @@ local Recipes = {
 			},
 			Time = 8,
 		},
-		["_ndow"] = {
+		["Cake 4"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -55,7 +55,7 @@ local Recipes = {
 			},
 			Time = 8,
 		},
-		["_mpdsa"] = {
+		["Cake 5"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -64,7 +64,7 @@ local Recipes = {
 			},
 			Time = 8,
 		},
-		["_dmsadpl"] = {
+		["Cake 6"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -73,7 +73,7 @@ local Recipes = {
 			},
 			Time = 8,
 		},
-		["_owo"] = {
+		["Cake 7"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -82,7 +82,7 @@ local Recipes = {
 			},
 			Time = 8,
 		},
-		["_dosapd"] = {
+		["Cake 8"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -91,7 +91,7 @@ local Recipes = {
 			},
 			Time = 8,
 		},
-		["_odsap"] = {
+		["Cake 9"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -100,7 +100,7 @@ local Recipes = {
 			},
 			Time = 8,
 		},
-		["_lpl"] = {
+		["Cake 10"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -109,7 +109,7 @@ local Recipes = {
 			},
 			Time = 8,
 		},
-		["_kdsakl"] = {
+		["Cake 11"] = {
 			Id = 3,
 			Ingredients = {
 				"Egg",
@@ -117,43 +117,7 @@ local Recipes = {
 				"Vanilla Extract"
 			},
 			Time = 8,
-		},
-		["_dsad"] = {
-			Id = 3,
-			Ingredients = {
-				"Egg",
-				"Flour",
-				"Vanilla Extract"
-			},
-			Time = 8,
-		},
-		["_jdsa"] = {
-			Id = 3,
-			Ingredients = {
-				"Egg",
-				"Flour",
-				"Vanilla Extract"
-			},
-			Time = 8,
-		},
-		["_jddsaa"] = {
-			Id = 3,
-			Ingredients = {
-				"Egg",
-				"Flour",
-				"Vanilla Extract"
-			},
-			Time = 8,
-		},
-		["_jddsadsaa"] = {
-			Id = 3,
-			Ingredients = {
-				"Egg",
-				"Flour",
-				"Vanilla Extract"
-			},
-			Time = 8,
-		},
+		}
 	},
 	["Oven"] = {
 		["Cupcake"] = {
